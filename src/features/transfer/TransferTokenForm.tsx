@@ -41,6 +41,7 @@ export function TransferTokenForm({ tokenRoutes }: { tokenRoutes: RoutesMap }) {
   // Flag for if form is in input vs review mode
   const [isReview, setIsReview] = useState(false);
   const [dropDownStatus, setDropDownStatus] = useState<boolean>(true);
+  const [collateralOption, setCollateralOption] = useState<string>('single');
 
   const onSubmitForm = (values: TransferFormValues) => {
     logger.debug('Reviewing transfer form values:', JSON.stringify(values));
@@ -150,7 +151,7 @@ export function TransferTokenForm({ tokenRoutes }: { tokenRoutes: RoutesMap }) {
             </div>
           </div>
           <div className="mt-2 flex justify-between bg-green-50 rounded-t p-1">
-            <div>◉ collateral option : Single </div>
+            <div>◉ collateral option : {collateralOption} </div>
             <div
               className={`font-bold cursor-pointer
             ${dropDownStatus && 'rotate-180'}`}
@@ -161,15 +162,33 @@ export function TransferTokenForm({ tokenRoutes }: { tokenRoutes: RoutesMap }) {
           </div>
           {!dropDownStatus && (
             <div className="grid grid-cols-3 gap-2 h-20 bg-green-50 p-4 rounded-b">
-              <div className="col-span-1 border border-slate-600 rounded flex items-center justify-center">
+              <button
+                className={`col-span-1 border border-slate-300
+													rounded flex items-center justify-center
+													${collateralOption == 'single' ? 'bg-blue-500 text-white' : 'bg-slate-300'}
+								`}
+                onClick={() => setCollateralOption('single')}
+              >
                 Single
-              </div>
-              <div className="col-span-1 border border-slate-600 rounded flex items-center justify-center">
+              </button>
+              <button
+                className={`col-span-1 border border-slate-300
+													rounded flex items-center justify-center
+													${collateralOption == 'auto' ? 'bg-blue-500 text-white' : 'bg-slate-300'}
+							`}
+                onClick={() => setCollateralOption('auto')}
+              >
                 Auto
-              </div>
-              <div className="col-span-1 border border-slate-600 rounded flex items-center justify-center">
+              </button>
+              <button
+                className={`col-span-1 border border-slate-300
+													rounded flex items-center justify-center
+													${collateralOption == 'custom' ? 'bg-blue-500 text-white' : 'bg-slate-300'}
+								`}
+                onClick={() => setCollateralOption('custom')}
+              >
                 Custom
-              </div>
+              </button>
             </div>
           )}
           <div className="mt-4">
