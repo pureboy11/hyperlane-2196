@@ -40,6 +40,7 @@ export function TransferTokenForm({ tokenRoutes }: { tokenRoutes: RoutesMap }) {
 
   // Flag for if form is in input vs review mode
   const [isReview, setIsReview] = useState(false);
+  const [dropDownStatus, setDropDownStatus] = useState<boolean>(true);
 
   const onSubmitForm = (values: TransferFormValues) => {
     logger.debug('Reviewing transfer form values:', JSON.stringify(values));
@@ -148,6 +149,29 @@ export function TransferTokenForm({ tokenRoutes }: { tokenRoutes: RoutesMap }) {
               </div>
             </div>
           </div>
+          <div className="mt-2 flex justify-between bg-green-50 rounded-t p-1">
+            <div>◉ collateral option : Single </div>
+            <div
+              className={`font-bold cursor-pointer
+            ${dropDownStatus && 'rotate-180'}`}
+              onClick={() => setDropDownStatus(!dropDownStatus)}
+            >
+              ▼
+            </div>
+          </div>
+          {!dropDownStatus && (
+            <div className="grid grid-cols-3 gap-2 h-20 bg-green-50 p-4 rounded-b">
+              <div className="col-span-1 border border-slate-600 rounded flex items-center justify-center">
+                Single
+              </div>
+              <div className="col-span-1 border border-slate-600 rounded flex items-center justify-center">
+                Auto
+              </div>
+              <div className="col-span-1 border border-slate-600 rounded flex items-center justify-center">
+                Custom
+              </div>
+            </div>
+          )}
           <div className="mt-4">
             <div className="flex justify-between pr-1">
               <label
