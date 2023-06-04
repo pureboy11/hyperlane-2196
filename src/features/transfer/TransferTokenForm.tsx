@@ -1,6 +1,6 @@
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { Form, Formik, useFormikContext } from 'formik';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 
 import { WideChevron } from '@hyperlane-xyz/widgets';
@@ -40,8 +40,6 @@ export function TransferTokenForm({ tokenRoutes }: { tokenRoutes: RoutesMap }) {
 
   // Flag for if form is in input vs review mode
   const [isReview, setIsReview] = useState(false);
-  const [dropDownStatus, setDropDownStatus] = useState<boolean>(true);
-  const [collateralOption, setCollateralOption] = useState<string>('single');
 
   const onSubmitForm = (values: TransferFormValues) => {
     logger.debug('Reviewing transfer form values:', JSON.stringify(values));
@@ -150,47 +148,9 @@ export function TransferTokenForm({ tokenRoutes }: { tokenRoutes: RoutesMap }) {
               </div>
             </div>
           </div>
-          <div className="mt-2 flex justify-between bg-green-50 rounded-t p-1">
-            <div>◉ collateral option : {collateralOption} </div>
-            <div
-              className={`font-bold cursor-pointer
-            ${dropDownStatus && 'rotate-180'}`}
-              onClick={() => setDropDownStatus(!dropDownStatus)}
-            >
-              ▼
-            </div>
+          <div className="mt-2">
+            <CollateralOptionButton disabled={isReview} tokenRoutes={tokenRoutes} />
           </div>
-          {!dropDownStatus && (
-            <div className="grid grid-cols-3 gap-2 h-20 bg-green-50 p-4 rounded-b">
-              <button
-                className={`col-span-1 border border-slate-300
-													rounded flex items-center justify-center
-													${collateralOption == 'single' ? 'bg-blue-500 text-white' : 'bg-slate-300'}
-								`}
-                onClick={() => setCollateralOption('single')}
-              >
-                Single
-              </button>
-              <button
-                className={`col-span-1 border border-slate-300
-													rounded flex items-center justify-center
-													${collateralOption == 'auto' ? 'bg-blue-500 text-white' : 'bg-slate-300'}
-							`}
-                onClick={() => setCollateralOption('auto')}
-              >
-                Auto
-              </button>
-              <button
-                className={`col-span-1 border border-slate-300
-													rounded flex items-center justify-center
-													${collateralOption == 'custom' ? 'bg-blue-500 text-white' : 'bg-slate-300'}
-								`}
-                onClick={() => setCollateralOption('custom')}
-              >
-                Custom
-              </button>
-            </div>
-          )}
           <div className="mt-4">
             <div className="flex justify-between pr-1">
               <label
@@ -284,6 +244,74 @@ function useSelfTokenBalance(tokenRoutes) {
 function SelfTokenBalance({ tokenRoutes }: { tokenRoutes: RoutesMap }) {
   const { balance } = useSelfTokenBalance(tokenRoutes);
   return <TokenBalance label="My balance" balance={balance} />;
+}
+
+function CollateralOptionButton({
+  tokenRoutes,
+  disabled,
+}: {
+  tokenRoutes: RoutesMap;
+  disabled?: boolean;
+}) {
+  const { values } = useFormikContext<TransferFormValues>();
+  const { balance } = useSelfTokenBalance(tokenRoutes);
+  const [dropDownStatus, setDropDownStatus] = useState<boolean>(true);
+  const [collateralStatus, setCollateralStatus] = useState<string>('sufficient');
+  // 'sufficient', 'insufficient', 'frozen'
+  const [availableTransfer, setAvailableTransfer] = useState<boolean>(true);
+  const { amount } = values;
+
+  console.log(values.amount);
+  console.log(amount);
+
+  useEffect(() => {
+    if (parseFloat(amount) > parseFloat(amount)) {
+      setAvailableTransfer(false);
+    } else {
+      setAvailableTransfer(true);
+    }
+  }, [amount, balance]);
+  useEffect(() => {
+    if (availableTransfer) {
+      setCollateralStatus('sufficient');
+    } else if (parseFloat(amount) > parseFloat(amount)) {
+      setCollateralStatus('insufficient');
+    } else {
+      setCollateralStatus('frozen');
+    }
+  }, [availableTransfer]);
+
+  return (
+    <>
+      {!disabled && amount ? (
+        <div>
+          <div className="flex justify-between bg-green-50 rounded-t p-1">
+            <div>◉ Destination Status : {collateralStatus} </div>
+            <div
+              className={`font-bold cursor-pointer
+        ${dropDownStatus && 'rotate-180'}`}
+              onClick={() => setDropDownStatus(!dropDownStatus)}
+            >
+              ▼
+            </div>
+          </div>
+          <div>
+            {!dropDownStatus && !availableTransfer && (
+              <div className="w-full gap-2 bg-green-50 p-4 rounded-b ">
+                <button
+                  className={`col-span-1 p-1 border border-slate-300 ml-auto
+													rounded flex items-center justify-center
+													bg-blue-500 text-white`}
+                >
+                  Request Collateral Stabilization
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
 }
 
 function RecipientTokenBalance({ tokenRoutes }: { tokenRoutes: RoutesMap }) {
